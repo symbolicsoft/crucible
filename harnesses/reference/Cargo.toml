@@ -1,0 +1,17 @@
+[package]
+name = "crucible-harness-reference"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Reference ML-KEM harness using Crucible's own spec-correct math"
+
+[[bin]]
+name = "harness-reference"
+path = "src/main.rs"
+
+[dependencies]
+crucible-ml-kem = { path = "../../crates/crucible-ml-kem" }
+serde.workspace = true
+serde_json.workspace = true
+hex.workspace = true
+sha3.workspace = true

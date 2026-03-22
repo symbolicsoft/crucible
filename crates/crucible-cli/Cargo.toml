@@ -1,0 +1,17 @@
+[package]
+name = "crucible-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "CLI entry point for Crucible cryptographic conformance testing"
+
+[[bin]]
+name = "crucible"
+path = "src/main.rs"
+
+[dependencies]
+crucible-core = { path = "../crucible-core" }
+crucible-ml-kem = { path = "../crucible-ml-kem" }
+crucible-ml-dsa = { path = "../crucible-ml-dsa" }
+serde.workspace = true
+serde_json.workspace = true

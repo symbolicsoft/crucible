@@ -1,0 +1,17 @@
+[package]
+name = "crucible-harness-libcrux"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Harness for libcrux ML-KEM (Cryspen) — Crucible's primary audit-derived target"
+
+[[bin]]
+name = "harness-libcrux"
+path = "src/main.rs"
+
+[dependencies]
+libcrux-ml-kem = { version = "0.0.8", features = ["mlkem512", "mlkem768", "mlkem1024"] }
+crucible-ml-kem = { path = "../../crates/crucible-ml-kem" }
+serde.workspace = true
+serde_json.workspace = true
+hex.workspace = true

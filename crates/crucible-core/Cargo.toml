@@ -1,0 +1,12 @@
+[package]
+name = "crucible-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Test orchestration, harness protocol, and verdict reporting for Crucible"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+hex.workspace = true

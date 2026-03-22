@@ -1,0 +1,13 @@
+[package]
+name = "crucible-ml-dsa"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "ML-DSA (FIPS 204) test battery for Crucible"
+
+[dependencies]
+crucible-core = { path = "../crucible-core" }
+serde.workspace = true
+serde_json.workspace = true
+sha3.workspace = true
+hex.workspace = true
