@@ -109,6 +109,7 @@ for h in \
   target/harness-itzmeanjan \
   target/harness-pqcrypto \
   target/harness-pqclean \
+  target/harness-orion \
 ; do
   echo "=== $(basename $h) ==="
   cargo run --quiet --bin crucible -- "$h"
@@ -156,6 +157,7 @@ Crucible ships with harnesses for 15 implementations across 5 languages:
 | 13 | pqcrypto (rustpq) | Rust | Yes | — | No |
 | 14 | PQClean | C | Yes | — | Yes |
 | 15 | Trail of Bits ml-dsa | Go | — | Yes | Yes |
+| 16 | Orion | Rust | Yes | - | Yes |
 
 "Deterministic" means the harness accepts explicit randomness seeds, enabling byte-for-byte comparison against the reference implementation.
 
@@ -314,6 +316,7 @@ crucible/
     bouncy-castle/       — Bouncy Castle (Java)
     wolfssl/             — wolfCrypt/wolfSSL (C)
     tob-mldsa/           — Trail of Bits ml-dsa (Go)
+    orion/               — Orion (Rust)
     templates/           — Harness templates for new implementations
   refs/                  — FIPS 203 and FIPS 204 PDFs
   PLAN.md                — Detailed test plan with spec references
