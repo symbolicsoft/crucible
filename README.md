@@ -156,6 +156,7 @@ Crucible ships with harnesses for 15 implementations across 5 languages:
 | 13 | pqcrypto (rustpq) | Rust | Yes | — | No |
 | 14 | PQClean | C | Yes | — | Yes |
 | 15 | Trail of Bits ml-dsa | Go | — | Yes | Yes |
+| 16 | noble-post-quantum | JS | Yes | Yes | Yes |
 
 "Deterministic" means the harness accepts explicit randomness seeds, enabling byte-for-byte comparison against the reference implementation.
 
@@ -314,6 +315,7 @@ crucible/
     bouncy-castle/       — Bouncy Castle (Java)
     wolfssl/             — wolfCrypt/wolfSSL (C)
     tob-mldsa/           — Trail of Bits ml-dsa (Go)
+    noble-post-quantum/  — noble-post-quantum (JS/TS)
     templates/           — Harness templates for new implementations
   refs/                  — FIPS 203 and FIPS 204 PDFs
   PLAN.md                — Detailed test plan with spec references
