@@ -63,3 +63,28 @@ pub const ALL_PARAMS: &[MlDsaParams] = &[ML_DSA_44, ML_DSA_65, ML_DSA_87];
 pub fn params_by_name(name: &str) -> Option<&'static MlDsaParams> {
     ALL_PARAMS.iter().find(|p| p.name == name)
 }
+
+fn bit_length(a: u32) -> usize {
+    if a == 0 { return 1; }
+    32 - a.leading_zeros() as usize
+}
+
+/// Expected public key size in bytes for a parameter set.
+pub fn expected_pk_len(p: &MlDsaParams) -> usize {
+    let bitlen_q_minus_d = bit_length(Q - 1) - D as usize;
+    32 + 32 * p.k * bitlen_q_minus_d
+}
+
+/// Expected secret key size in bytes for a parameter set.
+pub fn expected_sk_len(p: &MlDsaParams) -> usize {
+    let eta_pack_size = 32 * bit_length(2 * p.eta);
+    let d_pack_size = 32 * D as usize;
+    128 + p.l * eta_pack_size + p.k * eta_pack_size + p.k * d_pack_size
+}
+
+/// Expected signature size in bytes for a parameter set.
+pub fn expected_sig_len(p: &MlDsaParams) -> usize {
+    let gamma1_bits = bit_length(2 * p.gamma1 - 1);
+    let z_pack_size = 32 * gamma1_bits;
+    p.lambda / 4 + p.l * z_pack_size + p.omega + p.k
+}

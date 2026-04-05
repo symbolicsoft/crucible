@@ -6,7 +6,7 @@
 use crucible_core::harness::Harness;
 use crucible_core::orchestrator::{harness_error_to_outcome, TestCase, TestCategory};
 use crucible_core::verdict::*;
-use crate::params::{self, MlDsaParams};
+use crate::params::{self, MlDsaParams, expected_pk_len, expected_sk_len, expected_sig_len};
 
 pub fn category() -> TestCategory {
     TestCategory {
@@ -49,6 +49,25 @@ fn generate_keypair_and_sig(
         message: "keygen missing sk".into(),
     })?.clone();
 
+    let exp_pk = expected_pk_len(p);
+    if pk.len() != exp_pk {
+        return Err(TestOutcome::Error {
+            message: format!(
+                "harness returned {}-byte pk for {} (expected {exp_pk} bytes)",
+                pk.len(), p.name
+            ),
+        });
+    }
+    let exp_sk = expected_sk_len(p);
+    if sk.len() != exp_sk {
+        return Err(TestOutcome::Error {
+            message: format!(
+                "harness returned {}-byte sk for {} (expected {exp_sk} bytes)",
+                sk.len(), p.name
+            ),
+        });
+    }
+
     let sign_result = harness
         .call_fn(
             "ML_DSA_Sign",
@@ -59,6 +78,16 @@ fn generate_keypair_and_sig(
     let sig = sign_result.get("signature").ok_or_else(|| TestOutcome::Error {
         message: "sign missing signature".into(),
     })?.clone();
+
+    let exp_sig = expected_sig_len(p);
+    if sig.len() != exp_sig {
+        return Err(TestOutcome::Error {
+            message: format!(
+                "harness returned {}-byte signature for {} (expected {exp_sig} bytes)",
+                sig.len(), p.name
+            ),
+        });
+    }
 
     Ok((pk, sk, sig))
 }
