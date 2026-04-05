@@ -110,6 +110,7 @@ for h in \
   target/harness-pqcrypto \
   target/harness-pqclean \
   harnesses/zig-stdlib/zig-out/bin/harness-zig-stdlib \
+  target/harness-orion \
 ; do
   echo "=== $(basename $h) ==="
   cargo run --quiet --bin crucible -- "$h"
@@ -160,6 +161,7 @@ Crucible ships with harnesses for 16 implementations across 6 languages:
 | 15 | Trail of Bits ml-dsa | Go | — | Yes | Yes |
 | 16 | noble-post-quantum | JS | Yes | Yes | Yes |
 | 17 | Zig stdlib | Zig | Yes | Yes | Yes |
+| 18 | Orion | Rust | Yes | - | Yes |
 
 "Deterministic" means the harness accepts explicit randomness seeds, enabling byte-for-byte comparison against the reference implementation.
 
@@ -323,6 +325,7 @@ crucible/
     tob-mldsa/           — Trail of Bits ml-dsa (Go)
     noble-post-quantum/  — noble-post-quantum (JS/TS)
     zig-stdlib/          — Zig standard library (Zig)
+    orion/               — Orion (Rust)
     templates/           — Harness templates for new implementations
   refs/                  — FIPS 203 and FIPS 204 PDFs
   PLAN.md                — Detailed test plan with spec references
