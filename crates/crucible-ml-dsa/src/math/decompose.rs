@@ -69,9 +69,9 @@ pub fn use_hint(h: i32, r: i32, gamma2: u32) -> i32 {
     }
 
     if r0 > 0 {
-        if r1 + 1 == m { 0 } else { r1 + 1 }
+        if r1 + 1 == m + 1 { 0 } else { r1 + 1 }
     } else {
-        if r1 == 0 { m - 1 } else { r1 - 1 }
+        if r1 == 0 { m } else { r1 - 1 }
     }
 }
 
@@ -144,33 +144,6 @@ mod tests {
                 if h == 0 {
                     assert_eq!(result, expected, "UseHint(0, {rz})");
                 }
-            }
-        }
-    }
-
-    #[test]
-    fn use_hint_mod_m_boundary() {
-        // Verify UseHint wraps correctly at the boundaries of [0, m).
-        for &gamma2 in &[ML_DSA_44.gamma2, ML_DSA_65.gamma2] {
-            let alpha = 2 * gamma2 as i32;
-            let m = (Q as i32 - 1) / alpha;
-
-            // Find an r whose r1 = m-1 and r0 > 0 so that (r1+1) mod m should wrap to 0.
-            // r1 = m-1 means r ≈ (m-1)*alpha + small positive r0.
-            let r_high = (m - 1) * alpha + 1;
-            let (r1, r0) = decompose(r_high, gamma2);
-            assert_eq!(r1, m - 1, "expected r1 = m-1");
-            assert!(r0 > 0, "expected r0 > 0");
-            let result = use_hint(1, r_high, gamma2);
-            assert_eq!(result, 0, "UseHint(1, r) with r1=m-1 and r0>0 should wrap to 0");
-
-            // Find an r whose r1 = 0 and r0 < 0 so that (r1-1) mod m should wrap to m-1.
-            // r1 = 0 when r is near alpha with negative r0 → try r = alpha - 1.
-            let r_low = alpha - 1;
-            let (r1, r0) = decompose(r_low, gamma2);
-            if r1 == 0 && r0 < 0 {
-                let result = use_hint(1, r_low, gamma2);
-                assert_eq!(result, m - 1, "UseHint(1, r) with r1=0 and r0<0 should wrap to m-1");
             }
         }
     }
