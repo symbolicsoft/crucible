@@ -349,7 +349,7 @@ func handleDSASign(req *Request) Response {
 		sig := make([]byte, mldsa44.SignatureSize)
 		circlSignTo44(&sk, message, rndArr, sig)
 		return okResp(map[string]string{
-			"sigma": hex.EncodeToString(sig),
+			"signature": hex.EncodeToString(sig),
 		})
 	case 65:
 		var sk mldsa65.PrivateKey
@@ -359,7 +359,7 @@ func handleDSASign(req *Request) Response {
 		sig := make([]byte, mldsa65.SignatureSize)
 		circlSignTo65(&sk, message, rndArr, sig)
 		return okResp(map[string]string{
-			"sigma": hex.EncodeToString(sig),
+			"signature": hex.EncodeToString(sig),
 		})
 	case 87:
 		var sk mldsa87.PrivateKey
@@ -369,7 +369,7 @@ func handleDSASign(req *Request) Response {
 		sig := make([]byte, mldsa87.SignatureSize)
 		circlSignTo87(&sk, message, rndArr, sig)
 		return okResp(map[string]string{
-			"sigma": hex.EncodeToString(sig),
+			"signature": hex.EncodeToString(sig),
 		})
 	default:
 		return errResp(fmt.Sprintf("unsupported param_set: %d", paramSet))

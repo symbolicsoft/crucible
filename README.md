@@ -248,8 +248,8 @@ Or if the function isn't supported:
 | Function | Inputs | Params | Outputs |
 |---|---|---|---|
 | `ML_DSA_KeyGen` | `seed` (32 bytes) | `param_set` (44/65/87) | `pk`, `sk` |
-| `ML_DSA_Sign` | `sk`, `message`, `rnd` (32 bytes) | — | `sigma` |
-| `ML_DSA_Verify` | `pk`, `message`, `sigma` | — | `valid` ("01" or "00") |
+| `ML_DSA_Sign` | `sk`, `message`, `rnd` (32 bytes) | — | `signature` |
+| `ML_DSA_Verify` | `pk`, `message`, `signature` | — | `valid` ("01" or "00") |
 
 ## Writing a New Harness
 
