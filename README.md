@@ -109,6 +109,7 @@ for h in \
   target/harness-itzmeanjan \
   target/harness-pqcrypto \
   target/harness-pqclean \
+  harnesses/zig-stdlib/zig-out/bin/harness-zig-stdlib \
 ; do
   echo "=== $(basename $h) ==="
   cargo run --quiet --bin crucible -- "$h"
@@ -121,6 +122,7 @@ for h in \
   target/harness-liboqs \
   harnesses/bouncy-castle/harness-bouncy-castle.sh \
   target/harness-tob-mldsa \
+  harnesses/zig-stdlib/zig-out/bin/harness-zig-stdlib \
 ; do
   echo "=== $(basename $h) (ML-DSA) ==="
   cargo run --quiet --bin crucible -- "$h" --battery ml-dsa
@@ -137,7 +139,7 @@ done
 
 ## Tested Implementations
 
-Crucible ships with harnesses for 15 implementations across 5 languages:
+Crucible ships with harnesses for 16 implementations across 6 languages:
 
 | # | Implementation | Language | ML-KEM | ML-DSA | Deterministic |
 |---|---|---|---|---|---|
@@ -157,6 +159,7 @@ Crucible ships with harnesses for 15 implementations across 5 languages:
 | 14 | PQClean | C | Yes | — | Yes |
 | 15 | Trail of Bits ml-dsa | Go | — | Yes | Yes |
 | 16 | noble-post-quantum | JS | Yes | Yes | Yes |
+| 17 | Zig stdlib | Zig | Yes | Yes | Yes |
 
 "Deterministic" means the harness accepts explicit randomness seeds, enabling byte-for-byte comparison against the reference implementation.
 
@@ -178,6 +181,9 @@ cd harnesses/bouncy-castle
 
 # pqcrypto (standalone Rust, outside workspace)
 cd harnesses/pqcrypto && cargo build --release && cp target/release/harness-pqcrypto ../../target/
+
+# Zig harness
+cd harnesses/zig-stdlib && zig build
 ```
 
 C/C++ harness binaries are pre-built in `target/`. To rebuild, see the compilation commands in each harness directory.
@@ -316,6 +322,7 @@ crucible/
     wolfssl/             — wolfCrypt/wolfSSL (C)
     tob-mldsa/           — Trail of Bits ml-dsa (Go)
     noble-post-quantum/  — noble-post-quantum (JS/TS)
+    zig-stdlib/          — Zig standard library (Zig)
     templates/           — Harness templates for new implementations
   refs/                  — FIPS 203 and FIPS 204 PDFs
   PLAN.md                — Detailed test plan with spec references
