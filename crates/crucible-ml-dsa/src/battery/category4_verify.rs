@@ -15,6 +15,7 @@ pub fn category() -> TestCategory {
             Box::new(SignatureMalleabilityTest),
             Box::new(WrongKeyRejectionTest),
             Box::new(EmptyMessageTest),
+            Box::new(MessageIntegrityTest),
         ],
     }
 }
@@ -356,6 +357,90 @@ impl TestCase for EmptyMessageTest {
             }
             Ok(false) => {} // correctly rejected
             Err(o) => return o,
+        }
+
+        TestOutcome::Pass
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Test 4: Message integrity — single-byte modifications must invalidate
+// ---------------------------------------------------------------------------
+
+struct MessageIntegrityTest;
+
+impl TestCase for MessageIntegrityTest {
+    fn meta(&self, parameter_set: &str) -> TestMeta {
+        TestMeta {
+            id: format!("verify-message-integrity-{parameter_set}"),
+            name: "Single-byte message modification causes verification rejection".to_string(),
+            bug_class: BugClass::new("dead-code", "missing-message-binding"),
+            spec_ref: SpecReference::fips204("Algorithm 8, line 7 (mu computation)"),
+            severity: Severity::Critical,
+            provenance: None,
+        }
+    }
+
+    fn run(&self, harness: &mut Harness, parameter_set: &str) -> TestOutcome {
+        let p = match params::params_by_name(parameter_set) {
+            Some(p) => p,
+            None => return TestOutcome::Error {
+                message: format!("unknown parameter set: {parameter_set}"),
+            },
+        };
+
+        let seed = [0x77u8; 32];
+        // Use a message long enough to exercise multi-byte modification positions
+        // and long enough to span multiple SHAKE256 absorb blocks (136 bytes).
+        let msg: Vec<u8> = (0..200).map(|i| (i & 0xFF) as u8).collect();
+
+        let (pk, _sk, sig) = match generate_keypair_and_sig(harness, p, &seed, &msg) {
+            Ok(t) => t,
+            Err(o) => return o,
+        };
+
+        // Sanity: original message verifies.
+        match verify(harness, &pk, &msg, &sig) {
+            Ok(true) => {}
+            Ok(false) => {
+                return TestOutcome::Error {
+                    message: "original signature failed verification (test setup error)".into(),
+                };
+            }
+            Err(o) => return o,
+        }
+
+        // Modify single bytes at strategic positions: first, middle, last,
+        // and at the SHAKE256 block boundary (byte 135/136).
+        let positions = [0, 1, 67, 135, 136, msg.len() - 2, msg.len() - 1];
+
+        for &pos in &positions {
+            if pos >= msg.len() {
+                continue;
+            }
+
+            let mut bad_msg = msg.clone();
+            bad_msg[pos] ^= 0x01; // flip lowest bit
+
+            match verify(harness, &pk, &bad_msg, &sig) {
+                Ok(true) => {
+                    return TestOutcome::Fail {
+                        expected: "rejection (valid = 0x00)".into(),
+                        actual: "verification succeeded (valid = 0x01)".into(),
+                        detail: format!(
+                            "Modifying byte {pos} (0x{:02x} -> 0x{:02x}) of a {}-byte message \
+                             did not cause verification rejection for {parameter_set}. The message \
+                             representative mu = H(tr || M') may not incorporate all message bytes. \
+                             Position {pos} is {}.",
+                            msg[pos], bad_msg[pos], msg.len(),
+                            if pos < 136 { "within the first SHAKE256 block" }
+                            else { "beyond the first SHAKE256 block" }
+                        ),
+                    };
+                }
+                Ok(false) => {} // correctly rejected
+                Err(o) => return o,
+            }
         }
 
         TestOutcome::Pass

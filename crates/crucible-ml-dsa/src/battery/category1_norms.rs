@@ -14,6 +14,7 @@ pub fn category() -> TestCategory {
         tests: vec![
             Box::new(VerifierZNormTest),
             Box::new(HintBitUnpackMalformedTest),
+            Box::new(HintLeftoverNonZeroTest),
             Box::new(SignVerifyRoundTripTest),
         ],
     }
@@ -322,7 +323,105 @@ impl TestCase for HintBitUnpackMalformedTest {
 }
 
 // ---------------------------------------------------------------------------
-// Test 3: Basic sign/verify round-trip
+// Test 3: Hint leftover non-zero bytes
+// ---------------------------------------------------------------------------
+
+struct HintLeftoverNonZeroTest;
+
+impl TestCase for HintLeftoverNonZeroTest {
+    fn meta(&self, parameter_set: &str) -> TestMeta {
+        TestMeta {
+            id: format!("norms-hint-leftover-nonzero-{parameter_set}"),
+            name: "Verify rejects signatures with non-zero leftover bytes in hint encoding"
+                .to_string(),
+            bug_class: BugClass::new("bounds-check", "hint-validation"),
+            spec_ref: SpecReference::fips204("Algorithm 21 (HintBitUnpack), lines 16-19"),
+            severity: Severity::High,
+            provenance: None,
+        }
+    }
+
+    fn run(&self, harness: &mut Harness, parameter_set: &str) -> TestOutcome {
+        let p = match params::params_by_name(parameter_set) {
+            Some(p) => p,
+            None => return TestOutcome::Error {
+                message: format!("unknown parameter set: {parameter_set}"),
+            },
+        };
+
+        let msg = b"hint leftover test";
+
+        // Generate a valid signature to use as a template.
+        let (pk, _sk, sig) = match generate_valid_tuple(harness, p, 0x33, msg) {
+            Ok(t) => t,
+            Err(o) => return o,
+        };
+
+        // The hint is at the end of the signature: last (omega + k) bytes.
+        // Layout per Algorithm 20 (HintBitPack):
+        //   - omega bytes of hint index data
+        //   - k bytes of offset counters
+        //
+        // Algorithm 21 (HintBitUnpack) lines 16-19 require that any
+        // hint index bytes between the last used index and the omega
+        // boundary must be zero. A non-zero leftover byte indicates
+        // a malformed encoding that must be rejected.
+        let hint_len = p.omega + p.k;
+        let hint_start = sig.len() - hint_len;
+
+        // Strategy: construct a hint where no polynomials have any hints
+        // (all offset counters = 0), but set a leftover index byte to nonzero.
+        let mut bad_sig = sig.clone();
+
+        // Zero out all offset counters (no hints for any polynomial).
+        for i in 0..p.k {
+            bad_sig[hint_start + p.omega + i] = 0;
+        }
+        // Zero out all hint index slots first.
+        for i in 0..p.omega {
+            bad_sig[hint_start + i] = 0;
+        }
+        // Now set one "leftover" index byte to nonzero. Since all offset
+        // counters are 0, ALL omega index bytes are leftover and must be 0.
+        bad_sig[hint_start] = 1;
+
+        let result = harness.call_fn(
+            "ML_DSA_Verify",
+            &[("pk", &pk), ("message", msg), ("sigma", &bad_sig)],
+            &[],
+        );
+
+        match result {
+            Ok(outputs) => {
+                if let Some(valid) = outputs.get("valid") {
+                    if valid.len() >= 1 && valid[0] == 0x01 {
+                        return TestOutcome::Fail {
+                            expected: "rejection (valid = 0x00)".into(),
+                            actual: "verification succeeded (valid = 0x01)".into(),
+                            detail: "ML_DSA_Verify accepted a signature with non-zero leftover \
+                                     bytes in the hint encoding. HintBitUnpack (Algorithm 21, \
+                                     lines 16-19) must verify that all unused hint index bytes \
+                                     are zero. This check prevents signature malleability via \
+                                     the hint padding."
+                                .into(),
+                        };
+                    }
+                    TestOutcome::Pass
+                } else {
+                    TestOutcome::Error {
+                        message: "ML_DSA_Verify missing 'valid' output".into(),
+                    }
+                }
+            }
+            // An error response is also acceptable for malformed hints.
+            Err(crucible_core::harness::HarnessError::HarnessError(_)) => TestOutcome::Pass,
+            Err(e) => harness_error_to_outcome(&e),
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Test 4: Basic sign/verify round-trip
 // ---------------------------------------------------------------------------
 
 struct SignVerifyRoundTripTest;

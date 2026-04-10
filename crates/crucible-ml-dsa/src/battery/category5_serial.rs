@@ -15,6 +15,7 @@ pub fn category() -> TestCategory {
             Box::new(KeyEncodingRoundTripTest),
             Box::new(SignatureLengthTest),
             Box::new(PublicKeyLengthTest),
+            Box::new(SecretKeyLengthTest),
         ],
     }
 }
@@ -382,6 +383,88 @@ impl TestCase for PublicKeyLengthTest {
                     }
                 }
                 // An error is also acceptable for malformed inputs.
+                Err(crucible_core::harness::HarnessError::HarnessError(_)) => {}
+                Err(e) => return harness_error_to_outcome(&e),
+            }
+        }
+
+        TestOutcome::Pass
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Test 4: Wrong-length secret keys rejected by Sign
+// ---------------------------------------------------------------------------
+
+struct SecretKeyLengthTest;
+
+impl TestCase for SecretKeyLengthTest {
+    fn meta(&self, parameter_set: &str) -> TestMeta {
+        TestMeta {
+            id: format!("serial-sk-length-{parameter_set}"),
+            name: "Wrong-length secret keys are rejected by Sign".to_string(),
+            bug_class: BugClass::new("bounds-check", "sk-length"),
+            spec_ref: SpecReference::fips204("Algorithm 7, sk parsing via skDecode"),
+            severity: Severity::High,
+            provenance: None,
+        }
+    }
+
+    fn run(&self, harness: &mut Harness, parameter_set: &str) -> TestOutcome {
+        let p = match params::params_by_name(parameter_set) {
+            Some(p) => p,
+            None => return TestOutcome::Error {
+                message: format!("unknown parameter set: {parameter_set}"),
+            },
+        };
+
+        let msg = b"sk length test";
+        let rnd = [0u8; 32];
+        let exp_sk = expected_sk_len(p);
+
+        // Test wrong-length secret keys.
+        let bad_lengths: Vec<usize> = vec![
+            0,
+            1,
+            exp_sk - 1,
+            exp_sk + 1,
+            exp_sk / 2,
+        ];
+
+        for bad_len in bad_lengths {
+            let bad_sk = vec![0u8; bad_len];
+
+            let result = harness.call_fn(
+                "ML_DSA_Sign",
+                &[("sk", &bad_sk), ("message", msg.as_slice()), ("rnd", &rnd)],
+                &[],
+            );
+
+            match result {
+                Ok(outputs) => {
+                    // If the harness returned a signature, check that it's at least
+                    // not the expected length (indicating it was confused about params).
+                    if let Some(sig) = outputs.get("signature") {
+                        let exp_sig = expected_sig_len(p);
+                        if sig.len() == exp_sig {
+                            // A valid-looking signature from a wrong-length sk is a problem.
+                            return TestOutcome::Fail {
+                                expected: format!(
+                                    "error or rejection for {bad_len}-byte sk (expected {exp_sk})"
+                                ),
+                                actual: format!("produced {}-byte signature", sig.len()),
+                                detail: format!(
+                                    "ML_DSA_Sign accepted a {bad_len}-byte secret key for \
+                                     {parameter_set} (expected {exp_sk} bytes) and produced a \
+                                     valid-looking signature. The signer must validate sk length \
+                                     to prevent buffer over-reads during skDecode."
+                                ),
+                            };
+                        }
+                    }
+                    // No signature or wrong-sized signature: acceptable behavior.
+                }
+                // An error is the expected behavior for malformed sk.
                 Err(crucible_core::harness::HarnessError::HarnessError(_)) => {}
                 Err(e) => return harness_error_to_outcome(&e),
             }
