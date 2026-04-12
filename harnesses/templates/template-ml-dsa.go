@@ -180,10 +180,8 @@ func handleSign(req *Request) Response {
 	// Input "rnd": 32 bytes.
 	//   - Deterministic signing: rnd = {0}^32 (32 zero bytes).
 	//   - Hedged signing: rnd = 32 fresh random bytes.
+	// Param "param_set": 44, 65, or 87 (always provided by Crucible).
 	// Output "signature": the encoded signature σ (byte string).
-	//
-	// The parameter set can be inferred from sk length:
-	//   2560 → ML-DSA-44,  4032 → ML-DSA-65,  4896 → ML-DSA-87
 
 	sk, err := getBytes(req, "sk")
 	if err != nil {
@@ -220,10 +218,8 @@ func handleVerify(req *Request) Response {
 	// Input "message": the formatted message M' (byte string).
 	//   IMPORTANT: Same as for Sign — this is M', not the raw message.
 	// Input "sigma": the signature σ (byte string).
+	// Param "param_set": 44, 65, or 87 (always provided by Crucible).
 	// Output "valid": single byte — 0x01 if valid, 0x00 if invalid.
-	//
-	// The parameter set can be inferred from pk length:
-	//   1312 → ML-DSA-44,  1952 → ML-DSA-65,  2592 → ML-DSA-87
 	//
 	// Per FIPS 204 §3.6.2: implementations that accept pk or σ of
 	// non-standard length SHALL return false (not an error).

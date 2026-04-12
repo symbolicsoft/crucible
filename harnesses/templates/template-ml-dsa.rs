@@ -198,10 +198,8 @@ fn handle_sign(req: &Request) -> Response {
     //   - Deterministic signing: rnd = {0}^32 (32 zero bytes).
     //   - Hedged signing: rnd = 32 fresh random bytes.
     //   (See FIPS 204 §3.4 for the distinction.)
+    // Param "param_set": 44, 65, or 87 (always provided by Crucible).
     // Output "signature": the encoded signature σ (byte string).
-    //
-    // The parameter set is inferred from the sk byte length:
-    //   2560 → ML-DSA-44,  4032 → ML-DSA-65,  4896 → ML-DSA-87
     //
     // The signing algorithm uses a rejection-sampling loop that may
     // require multiple iterations before producing a valid signature
@@ -210,13 +208,19 @@ fn handle_sign(req: &Request) -> Response {
     let sk = match get_bytes(req, "sk") { Ok(v) => v, Err(e) => return err(e) };
     let message = match get_bytes(req, "message") { Ok(v) => v, Err(e) => return err(e) };
     let rnd = match get_bytes(req, "rnd") { Ok(v) => v, Err(e) => return err(e) };
+    let param_set = match get_param(req, "param_set") { Ok(v) => v, Err(e) => return err(e) };
 
     if rnd.len() != 32 {
         return err(format!("rnd must be 32 bytes, got {}", rnd.len()));
     }
 
-    // TODO: Call your ML-DSA Sign_internal.
-    // let signature = your_ml_dsa_sign_internal(&sk, &message, &rnd);
+    // TODO: Call your ML-DSA Sign_internal using param_set to select the variant.
+    // let signature = match param_set {
+    //     44 => your_ml_dsa_44_sign_internal(&sk, &message, &rnd),
+    //     65 => your_ml_dsa_65_sign_internal(&sk, &message, &rnd),
+    //     87 => your_ml_dsa_87_sign_internal(&sk, &message, &rnd),
+    //     _ => return err(format!("unsupported param_set: {param_set}")),
+    // };
     let signature: Vec<u8> = todo!("ML_DSA_Sign");
 
     let mut outputs = HashMap::new();
@@ -231,10 +235,8 @@ fn handle_verify(req: &Request) -> Response {
     // Input "message": the formatted message M' (byte string).
     //   IMPORTANT: Same as for Sign — this is M', not the raw message.
     // Input "sigma": the signature σ (byte string).
+    // Param "param_set": 44, 65, or 87 (always provided by Crucible).
     // Output "valid": single byte — 0x01 if valid, 0x00 if invalid.
-    //
-    // The parameter set is inferred from the pk byte length:
-    //   1312 → ML-DSA-44,  1952 → ML-DSA-65,  2592 → ML-DSA-87
     //
     // Per FIPS 204 §3.6.2: implementations that accept pk or σ of
     // non-standard length SHALL return false (not an error).
@@ -245,9 +247,15 @@ fn handle_verify(req: &Request) -> Response {
     let pk = match get_bytes(req, "pk") { Ok(v) => v, Err(e) => return err(e) };
     let message = match get_bytes(req, "message") { Ok(v) => v, Err(e) => return err(e) };
     let sigma = match get_bytes(req, "sigma") { Ok(v) => v, Err(e) => return err(e) };
+    let param_set = match get_param(req, "param_set") { Ok(v) => v, Err(e) => return err(e) };
 
-    // TODO: Call your ML-DSA Verify_internal.
-    // let valid: bool = your_ml_dsa_verify_internal(&pk, &message, &sigma);
+    // TODO: Call your ML-DSA Verify_internal using param_set to select the variant.
+    // let valid: bool = match param_set {
+    //     44 => your_ml_dsa_44_verify_internal(&pk, &message, &sigma),
+    //     65 => your_ml_dsa_65_verify_internal(&pk, &message, &sigma),
+    //     87 => your_ml_dsa_87_verify_internal(&pk, &message, &sigma),
+    //     _ => return err(format!("unsupported param_set: {param_set}")),
+    // };
     let valid: bool = todo!("ML_DSA_Verify");
 
     let mut outputs = HashMap::new();

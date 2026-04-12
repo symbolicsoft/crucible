@@ -75,7 +75,7 @@ fn generate_valid_tuple(
         .call_fn(
             "ML_DSA_Sign",
             &[("sk", &sk), ("message", msg), ("rnd", &rnd)],
-            &[],
+            &[("param_set", ps)],
         )
         .map_err(|e| harness_error_to_outcome(&e))?;
     let sig = sign_result.get("signature").ok_or_else(|| TestOutcome::Error {
@@ -150,12 +150,11 @@ impl TestCase for VerifierZNormTest {
         }
 
         let ps = param_set_id(p);
-        let _ = ps; // param_set is embedded in the key
 
         let result = harness.call_fn(
             "ML_DSA_Verify",
             &[("pk", &pk), ("message", msg), ("sigma", &bad_sig)],
-            &[],
+            &[("param_set", ps)],
         );
 
         match result {
@@ -213,6 +212,7 @@ impl TestCase for HintBitUnpackMalformedTest {
         };
 
         let msg = b"malformed hint test";
+        let ps = param_set_id(p);
 
         // Generate a valid signature to use as a template.
         let (pk, _sk, sig) = match generate_valid_tuple(harness, p, 0x22, msg) {
@@ -250,7 +250,7 @@ impl TestCase for HintBitUnpackMalformedTest {
             let result = harness.call_fn(
                 "ML_DSA_Verify",
                 &[("pk", &pk), ("message", msg), ("sigma", &bad_sig)],
-                &[],
+                &[("param_set", ps)],
             );
 
             match result {
@@ -296,7 +296,7 @@ impl TestCase for HintBitUnpackMalformedTest {
             let result = harness.call_fn(
                 "ML_DSA_Verify",
                 &[("pk", &pk), ("message", msg), ("sigma", &bad_sig)],
-                &[],
+                &[("param_set", ps)],
             );
 
             match result {
@@ -350,6 +350,7 @@ impl TestCase for HintLeftoverNonZeroTest {
         };
 
         let msg = b"hint leftover test";
+        let ps = param_set_id(p);
 
         // Generate a valid signature to use as a template.
         let (pk, _sk, sig) = match generate_valid_tuple(harness, p, 0x33, msg) {
@@ -388,7 +389,7 @@ impl TestCase for HintLeftoverNonZeroTest {
         let result = harness.call_fn(
             "ML_DSA_Verify",
             &[("pk", &pk), ("message", msg), ("sigma", &bad_sig)],
-            &[],
+            &[("param_set", ps)],
         );
 
         match result {
@@ -485,7 +486,7 @@ impl TestCase for SignVerifyRoundTripTest {
             let sign_result = match harness.call_fn(
                 "ML_DSA_Sign",
                 &[("sk", &sk), ("message", *msg), ("rnd", &rnd)],
-                &[],
+                &[("param_set", ps)],
             ) {
                 Ok(r) => r,
                 Err(e) => return harness_error_to_outcome(&e),
@@ -501,7 +502,7 @@ impl TestCase for SignVerifyRoundTripTest {
             let verify_result = match harness.call_fn(
                 "ML_DSA_Verify",
                 &[("pk", &pk), ("message", *msg), ("sigma", &sig)],
-                &[],
+                &[("param_set", ps)],
             ) {
                 Ok(r) => r,
                 Err(e) => return harness_error_to_outcome(&e),

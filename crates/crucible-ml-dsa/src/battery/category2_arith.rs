@@ -122,7 +122,7 @@ impl TestCase for Power2RoundTest {
         let sign_result = match harness.call_fn(
             "ML_DSA_Sign",
             &[("sk", &harness_sk), ("message", msg.as_slice()), ("rnd", &rnd)],
-            &[],
+            &[("param_set", ps)],
         ) {
             Ok(r) => r,
             Err(e) => return harness_error_to_outcome(&e),
@@ -246,7 +246,7 @@ impl TestCase for DecomposeTest {
             let sign_result = match harness.call_fn(
                 "ML_DSA_Sign",
                 &[("sk", &sk), ("message", msg.as_slice()), ("rnd", &rnd)],
-                &[],
+                &[("param_set", ps)],
             ) {
                 Ok(r) => r,
                 Err(e) => return harness_error_to_outcome(&e),
@@ -262,7 +262,7 @@ impl TestCase for DecomposeTest {
             let verify_result = match harness.call_fn(
                 "ML_DSA_Verify",
                 &[("pk", &pk), ("message", msg.as_slice()), ("sigma", &sig)],
-                &[],
+                &[("param_set", ps)],
             ) {
                 Ok(r) => r,
                 Err(e) => return harness_error_to_outcome(&e),

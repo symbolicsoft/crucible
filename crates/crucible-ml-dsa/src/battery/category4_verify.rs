@@ -73,7 +73,7 @@ fn generate_keypair_and_sig(
         .call_fn(
             "ML_DSA_Sign",
             &[("sk", &sk), ("message", msg), ("rnd", &rnd)],
-            &[],
+            &[("param_set", ps)],
         )
         .map_err(|e| harness_error_to_outcome(&e))?;
     let sig = sign_result.get("signature").ok_or_else(|| TestOutcome::Error {
@@ -96,15 +96,17 @@ fn generate_keypair_and_sig(
 /// Helper: call verify and return the boolean result.
 fn verify(
     harness: &mut Harness,
+    p: &MlDsaParams,
     pk: &[u8],
     msg: &[u8],
     sig: &[u8],
 ) -> Result<bool, TestOutcome> {
+    let ps = param_set_id(p);
     let result = harness
         .call_fn(
             "ML_DSA_Verify",
             &[("pk", pk), ("message", msg), ("sigma", sig)],
-            &[],
+            &[("param_set", ps)],
         )
         .map_err(|e| harness_error_to_outcome(&e))?;
 
@@ -151,7 +153,7 @@ impl TestCase for SignatureMalleabilityTest {
         };
 
         // Sanity check: original signature must verify.
-        match verify(harness, &pk, msg, &sig) {
+        match verify(harness, p, &pk, msg, &sig) {
             Ok(true) => {}
             Ok(false) => {
                 return TestOutcome::Error {
@@ -186,7 +188,7 @@ impl TestCase for SignatureMalleabilityTest {
             let mut bad_sig = sig.clone();
             bad_sig[byte_pos] ^= 1 << bit_pos;
 
-            match verify(harness, &pk, msg, &bad_sig) {
+            match verify(harness, p, &pk, msg, &bad_sig) {
                 Ok(true) => {
                     return TestOutcome::Fail {
                         expected: "rejection (valid = 0x00)".into(),
@@ -261,7 +263,7 @@ impl TestCase for WrongKeyRejectionTest {
         };
 
         // Sanity: sig_a verifies under pk_a.
-        match verify(harness, &pk_a, msg, &sig_a) {
+        match verify(harness, p, &pk_a, msg, &sig_a) {
             Ok(true) => {}
             Ok(false) => {
                 return TestOutcome::Error {
@@ -272,7 +274,7 @@ impl TestCase for WrongKeyRejectionTest {
         }
 
         // sig_a must NOT verify under pk_b.
-        match verify(harness, &pk_b, msg, &sig_a) {
+        match verify(harness, p, &pk_b, msg, &sig_a) {
             Ok(true) => {
                 return TestOutcome::Fail {
                     expected: "rejection (valid = 0x00)".into(),
@@ -327,7 +329,7 @@ impl TestCase for EmptyMessageTest {
         };
 
         // Verify the empty-message signature.
-        match verify(harness, &pk, empty_msg, &sig) {
+        match verify(harness, p, &pk, empty_msg, &sig) {
             Ok(true) => {}
             Ok(false) => {
                 return TestOutcome::Fail {
@@ -344,7 +346,7 @@ impl TestCase for EmptyMessageTest {
         }
 
         // The empty-message signature must NOT verify with a non-empty message.
-        match verify(harness, &pk, b"not empty", &sig) {
+        match verify(harness, p, &pk, b"not empty", &sig) {
             Ok(true) => {
                 return TestOutcome::Fail {
                     expected: "rejection for different message".into(),
@@ -400,7 +402,7 @@ impl TestCase for MessageIntegrityTest {
         };
 
         // Sanity: original message verifies.
-        match verify(harness, &pk, &msg, &sig) {
+        match verify(harness, p, &pk, &msg, &sig) {
             Ok(true) => {}
             Ok(false) => {
                 return TestOutcome::Error {
@@ -422,7 +424,7 @@ impl TestCase for MessageIntegrityTest {
             let mut bad_msg = msg.clone();
             bad_msg[pos] ^= 0x01; // flip lowest bit
 
-            match verify(harness, &pk, &bad_msg, &sig) {
+            match verify(harness, p, &pk, &bad_msg, &sig) {
                 Ok(true) => {
                     return TestOutcome::Fail {
                         expected: "rejection (valid = 0x00)".into(),
