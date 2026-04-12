@@ -1,0 +1,19 @@
+[package]
+name = "crucible-harness-bouncy-castle-rust"
+version = "0.1.0"
+edition = "2024"
+description = "Harness for Bouncy Castel Rust ML-DSA"
+
+[[bin]]
+name = "harness-bc-rust"
+path = "src/main.rs"
+
+[dependencies]
+bouncycastle-core-interface = { path = "../../../bc-rust/crypto/core-interface", version = "0.1.1" }
+bouncycastle-mldsa = { path = "../../../bc-rust/crypto/mldsa", version = "0.1.2" }
+bouncycastle-sha3 = { path = "../../../bc-rust/crypto/sha3", version = ">=0.1.1" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hex = "0.4"
+
+[workspace]
