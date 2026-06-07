@@ -82,7 +82,7 @@ impl TestCase for SigningDeterminismTest {
         let sign1 = match harness.call_fn(
             "ML_DSA_Sign",
             &[("sk", &sk), ("message", msg.as_slice()), ("rnd", &rnd)],
-            &[],
+            &[("param_set", ps)],
         ) {
             Ok(r) => r,
             Err(e) => return harness_error_to_outcome(&e),
@@ -98,7 +98,7 @@ impl TestCase for SigningDeterminismTest {
         let sign2 = match harness.call_fn(
             "ML_DSA_Sign",
             &[("sk", &sk), ("message", msg.as_slice()), ("rnd", &rnd)],
-            &[],
+            &[("param_set", ps)],
         ) {
             Ok(r) => r,
             Err(e) => return harness_error_to_outcome(&e),
@@ -138,7 +138,7 @@ impl TestCase for SigningDeterminismTest {
         let sign3 = match harness.call_fn(
             "ML_DSA_Sign",
             &[("sk", &sk), ("message", msg2.as_slice()), ("rnd", &rnd)],
-            &[],
+            &[("param_set", ps)],
         ) {
             Ok(r) => r,
             Err(e) => return harness_error_to_outcome(&e),
@@ -228,7 +228,7 @@ impl TestCase for HedgedSigningVarianceTest {
         let sign1 = match harness.call_fn(
             "ML_DSA_Sign",
             &[("sk", &sk), ("message", msg.as_slice()), ("rnd", &rnd1)],
-            &[],
+            &[("param_set", ps)],
         ) {
             Ok(r) => r,
             Err(e) => return harness_error_to_outcome(&e),
@@ -244,7 +244,7 @@ impl TestCase for HedgedSigningVarianceTest {
         let sign2 = match harness.call_fn(
             "ML_DSA_Sign",
             &[("sk", &sk), ("message", msg.as_slice()), ("rnd", &rnd2)],
-            &[],
+            &[("param_set", ps)],
         ) {
             Ok(r) => r,
             Err(e) => return harness_error_to_outcome(&e),
@@ -279,7 +279,7 @@ impl TestCase for HedgedSigningVarianceTest {
             let result = match harness.call_fn(
                 "ML_DSA_Verify",
                 &[("pk", &pk), ("message", msg.as_slice()), ("sigma", sig)],
-                &[],
+                &[("param_set", ps)],
             ) {
                 Ok(r) => r,
                 Err(e) => return harness_error_to_outcome(&e),

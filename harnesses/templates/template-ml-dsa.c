@@ -122,10 +122,8 @@ static void handle_sign(/* parsed request */) {
      * Input "rnd": 32 bytes.
      *   - Deterministic signing: rnd = {0}^32 (32 zero bytes).
      *   - Hedged signing: rnd = 32 fresh random bytes.
+     * Param "param_set": 44, 65, or 87 (always provided by Crucible).
      * Output "signature": the encoded signature (byte string).
-     *
-     * The parameter set can be inferred from sk length:
-     *   2560 -> ML-DSA-44,  4032 -> ML-DSA-65,  4896 -> ML-DSA-87
      *
      * TODO: Extract sk, message, rnd from JSON, call your Sign_internal,
      *       then respond:
@@ -142,10 +140,8 @@ static void handle_verify(/* parsed request */) {
      * Input "message": the formatted message M' (byte string).
      *   IMPORTANT: Same as for Sign -- this is M', not the raw message.
      * Input "sigma": the signature (byte string).
+     * Param "param_set": 44, 65, or 87 (always provided by Crucible).
      * Output "valid": 1 byte -- "01" if valid, "00" if not.
-     *
-     * The parameter set can be inferred from pk length:
-     *   1312 -> ML-DSA-44,  1952 -> ML-DSA-65,  2592 -> ML-DSA-87
      *
      * Per FIPS 204 section 3.6.2: implementations that accept pk or sigma
      * of non-standard length SHALL return false (not an error).

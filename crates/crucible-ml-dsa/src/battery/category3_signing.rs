@@ -82,7 +82,7 @@ impl TestCase for DeterministicSignTest {
         let sign_result = match harness.call_fn(
             "ML_DSA_Sign",
             &[("sk", &harness_sk), ("message", msg.as_slice()), ("rnd", &rnd)],
-            &[],
+            &[("param_set", ps)],
         ) {
             Ok(r) => r,
             Err(e) => return harness_error_to_outcome(&e),
@@ -343,7 +343,7 @@ impl TestCase for SampleInBallPropertiesTest {
         let sign_result = match harness.call_fn(
             "ML_DSA_Sign",
             &[("sk", &sk), ("message", msg.as_slice()), ("rnd", &rnd)],
-            &[],
+            &[("param_set", ps)],
         ) {
             Ok(r) => r,
             Err(e) => return harness_error_to_outcome(&e),

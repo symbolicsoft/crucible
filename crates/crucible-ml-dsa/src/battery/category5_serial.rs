@@ -117,7 +117,7 @@ impl TestCase for KeyEncodingRoundTripTest {
             let sign_result = match harness.call_fn(
                 "ML_DSA_Sign",
                 &[("sk", &sk), ("message", msg.as_slice()), ("rnd", &rnd)],
-                &[],
+                &[("param_set", ps)],
             ) {
                 Ok(r) => r,
                 Err(e) => return harness_error_to_outcome(&e),
@@ -146,7 +146,7 @@ impl TestCase for KeyEncodingRoundTripTest {
             let verify_result = match harness.call_fn(
                 "ML_DSA_Verify",
                 &[("pk", &pk), ("message", msg.as_slice()), ("sigma", &sig)],
-                &[],
+                &[("param_set", ps)],
             ) {
                 Ok(r) => r,
                 Err(e) => return harness_error_to_outcome(&e),
@@ -240,7 +240,7 @@ impl TestCase for SignatureLengthTest {
             let result = harness.call_fn(
                 "ML_DSA_Verify",
                 &[("pk", &pk), ("message", msg.as_slice()), ("sigma", &bad_sig)],
-                &[],
+                &[("param_set", ps)],
             );
 
             match result {
@@ -330,7 +330,7 @@ impl TestCase for PublicKeyLengthTest {
         let sign_result = match harness.call_fn(
             "ML_DSA_Sign",
             &[("sk", &sk), ("message", msg.as_slice()), ("rnd", &rnd)],
-            &[],
+            &[("param_set", ps)],
         ) {
             Ok(r) => r,
             Err(e) => return harness_error_to_outcome(&e),
@@ -360,7 +360,7 @@ impl TestCase for PublicKeyLengthTest {
             let result = harness.call_fn(
                 "ML_DSA_Verify",
                 &[("pk", &bad_pk), ("message", msg.as_slice()), ("sigma", &sig)],
-                &[],
+                &[("param_set", ps)],
             );
 
             match result {
@@ -418,6 +418,7 @@ impl TestCase for SecretKeyLengthTest {
             },
         };
 
+        let ps = param_set_id(p);
         let msg = b"sk length test";
         let rnd = [0u8; 32];
         let exp_sk = expected_sk_len(p);
@@ -437,7 +438,7 @@ impl TestCase for SecretKeyLengthTest {
             let result = harness.call_fn(
                 "ML_DSA_Sign",
                 &[("sk", &bad_sk), ("message", msg.as_slice()), ("rnd", &rnd)],
-                &[],
+                &[("param_set", ps)],
             );
 
             match result {
