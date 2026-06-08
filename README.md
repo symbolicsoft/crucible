@@ -14,14 +14,19 @@ NIST's Known Answer Tests verify final outputs. Formal verification tools verify
 # Build Crucible
 cargo build --release
 
+# Build the harness you want to test
+cd ./harnesses/harness-name
+cargo build --release
+cd ../..
+
 # Run the ML-KEM battery against an implementation
-cargo run --bin crucible -- ./target/debug/harness-reference
+cargo run --bin crucible -- ./harnesses/harness-name/target/release/harness-reference
 
 # Run with JSON output
-cargo run --bin crucible -- ./target/debug/harness-reference --json
+cargo run --bin crucible -- ./harnesses/harness-name/target/release/harness-reference --json
 
 # Run the ML-DSA battery
-cargo run --bin crucible -- ./target/harness-circl --battery ml-dsa
+cargo run --bin crucible -- ./harnesses/harness-name/target/release/harness-reference --battery ml-dsa
 ```
 
 ## What It Tests
