@@ -43,8 +43,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::io::{self, BufRead, Write};
 
-use bouncycastle_core_interface::traits::{SignaturePublicKey, SignaturePrivateKey, XOF};
-use bouncycastle_core_interface::key_material::{KeyMaterial, KeyMaterialSized, KeyType};
+use bouncycastle_core::traits::{SignaturePublicKey, SignaturePrivateKey, XOF};
+use bouncycastle_core::key_material::{KeyMaterial, KeyMaterialTrait, KeyType};
 use bouncycastle_mldsa::{MLDSA44PrivateKey, MLDSA44PublicKey, MLDSA65PrivateKey, MLDSA65PublicKey, MLDSA87PrivateKey, MLDSA87PublicKey, MLDSAPrivateKeyTrait, MLDSAPublicKeyTrait, MLDSATrait, MLDSA44, MLDSA65, MLDSA87};
 use bouncycastle_sha3::SHAKE256;
 
@@ -178,7 +178,7 @@ fn handle_keygen(req: &Request) -> Response {
     let mut outputs = HashMap::new();
 
     // TODO: Call your ML-DSA KeyGen_internal with the given seed and parameter set.
-    let seed_keymaterial = KeyMaterialSized::<32>::from_bytes_as_type(seed.as_slice(), KeyType::Seed).unwrap();
+    let seed_keymaterial = KeyMaterial::<32>::from_bytes_as_type(seed.as_slice(), KeyType::Seed).unwrap();
     assert_eq!(seed_keymaterial.key_type(), KeyType::Seed);
     match param_set {
         44 => {
@@ -264,6 +264,7 @@ fn handle_sign(req: &Request) -> Response {
 
             let signature = MLDSA44::sign_mu_deterministic(
                 &sk,
+                None,
                 message.as_slice().try_into().unwrap(),
                 rnd.try_into().unwrap(),
             ).unwrap();
@@ -275,6 +276,7 @@ fn handle_sign(req: &Request) -> Response {
 
             let signature = MLDSA65::sign_mu_deterministic(
                 &sk,
+                None,
                 message.as_slice().try_into().unwrap(),
                 rnd.try_into().unwrap()
             ).unwrap();
@@ -286,6 +288,7 @@ fn handle_sign(req: &Request) -> Response {
 
             let signature = MLDSA87::sign_mu_deterministic(
                 &sk,
+                None,
                 message.as_slice().try_into().unwrap(),
                 rnd.try_into().unwrap()
             ).unwrap();
@@ -335,23 +338,34 @@ fn handle_verify(req: &Request) -> Response {
     h.squeeze_out(&mut mu);
 
     // TODO: Call your ML-DSA Verify_internal.
-    // let valid: bool = your_ml_dsa_verify_internal(&pk, &message, &sigma);
     let valid: bool = match param_set {
-        44 => MLDSA44::verify_mu_internal(
-            &MLDSA44PublicKey::from_bytes(&pk).unwrap(),
-            &mu,
-            &sigma.try_into().unwrap(),
-        ),
-        65 => MLDSA65::verify_mu_internal(
-            &MLDSA65PublicKey::from_bytes(&pk).unwrap(),
-            &mu,
-            &sigma.try_into().unwrap(),
-        ),
-        87 => MLDSA87::verify_mu_internal(
-            &MLDSA87PublicKey::from_bytes(&pk).unwrap(),
-            &mu,
-            &sigma.try_into().unwrap(),
-        ),
+        44 => {
+            let pk = MLDSA44PublicKey::from_bytes(&pk).unwrap();
+            MLDSA44::verify_mu_internal(
+                &pk,
+                &pk.A_hat(),
+                &mu,
+                &sigma.try_into().unwrap(),
+            )
+        },
+        65 => {
+            let pk = MLDSA65PublicKey::from_bytes(&pk).unwrap();
+            MLDSA65::verify_mu_internal(
+                &pk,
+                &pk.A_hat(),
+                &mu,
+                &sigma.try_into().unwrap(),
+            )
+        },
+        87 => {
+            let pk = MLDSA87PublicKey::from_bytes(&pk).unwrap();
+            MLDSA87::verify_mu_internal(
+                &pk,
+                &pk.A_hat(),
+                &mu,
+                &sigma.try_into().unwrap(),
+            )
+        },
         _ => return err(format!("unsupported param_set: {param_set}")),
     };
 
