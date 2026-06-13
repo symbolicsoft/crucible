@@ -1,0 +1,19 @@
+[package]
+name = "crucible-harness-bouncy-castle-rust-mlkem"
+version = "0.1.0"
+edition = "2024"
+description = "Harness for Bouncy Castle Rust ML-KEM"
+
+[[bin]]
+name = "harness-bc-rust-mlkem"
+path = "src/main.rs"
+
+[dependencies]
+bouncycastle-core = { path = "../../../bc-rust/crypto/core", version = ">=0.1.0" }
+bouncycastle-mlkem = { path = "../../../bc-rust/crypto/mlkem", version = ">=0.1.0" }
+bouncycastle-sha3 = { path = "../../../bc-rust/crypto/sha3", version = ">=0.1.0" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+hex = "0.4"
+
+[workspace]

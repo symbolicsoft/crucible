@@ -1,11 +1,11 @@
 [package]
-name = "crucible-harness-bouncy-castle-rust"
+name = "crucible-harness-bouncy-castle-rust-mldsa"
 version = "0.1.0"
 edition = "2024"
 description = "Harness for Bouncy Castle Rust ML-DSA"
 
 [[bin]]
-name = "harness-bc-rust"
+name = "harness-bc-rust-mldsa"
 path = "src/main.rs"
 
 [dependencies]
