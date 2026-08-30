@@ -162,7 +162,7 @@ Crucible ships with harnesses for 19 implementations across 7 languages:
 | 15 | Trail of Bits ml-dsa | Go | — | Yes | Yes |
 | 16 | noble-post-quantum | JS | Yes | Yes | Yes |
 | 17 | Zig stdlib | Zig | Yes | Yes | Yes |
-| 18 | Orion | Rust | Yes | - | Yes |
+| 18 | Orion | Rust | Yes | Yes | Yes |
 | 19 | Bouncy Castle Rust | Rust | — | Yes | Yes |
 
 "Deterministic" means the harness accepts explicit randomness seeds, enabling byte-for-byte comparison against the reference implementation.
